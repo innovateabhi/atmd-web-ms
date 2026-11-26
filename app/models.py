@@ -18,6 +18,26 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=utc_now, nullable=False)
     last_login = db.Column(db.DateTime, nullable=True)
 
+    def __init__(
+        self,
+        username: str = None,
+        password_hash: str = None,
+        created_at: datetime = None,
+        last_login: datetime = None,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        if username is not None:
+            self.username = username
+        if password_hash is not None:
+            self.password_hash = password_hash
+        if created_at is not None:
+            self.created_at = created_at
+        if last_login is not None:
+            self.last_login = last_login
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
     def set_password(self, password: str):
         self.password_hash = generate_password_hash(password)
 
@@ -51,6 +71,50 @@ class Website(db.Model):
     incidents = db.relationship('Incident', backref='website', lazy='dynamic', cascade='all, delete-orphan')
     notifications = db.relationship('NotificationLog', backref='website', lazy='dynamic', cascade='all, delete-orphan')
 
+    def __init__(
+        self,
+        name: str = None,
+        url: str = None,
+        check_interval_seconds: int = 60,
+        timeout_seconds: int = 10,
+        expected_status_code: str = '200',
+        is_active: bool = True,
+        current_status: str = 'pending',
+        last_checked_at: datetime = None,
+        last_response_time_ms: float = None,
+        last_status_code: int = None,
+        last_error_message: str = None,
+        consecutive_failures: int = 0,
+        created_at: datetime = None,
+        updated_at: datetime = None,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        if name is not None:
+            self.name = name
+        if url is not None:
+            self.url = url
+        self.check_interval_seconds = check_interval_seconds
+        self.timeout_seconds = timeout_seconds
+        self.expected_status_code = expected_status_code
+        self.is_active = is_active
+        self.current_status = current_status
+        if last_checked_at is not None:
+            self.last_checked_at = last_checked_at
+        if last_response_time_ms is not None:
+            self.last_response_time_ms = last_response_time_ms
+        if last_status_code is not None:
+            self.last_status_code = last_status_code
+        if last_error_message is not None:
+            self.last_error_message = last_error_message
+        self.consecutive_failures = consecutive_failures
+        if created_at is not None:
+            self.created_at = created_at
+        if updated_at is not None:
+            self.updated_at = updated_at
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
     @property
     def expected_status_list(self):
         """Parse comma or space separated status codes into integer list."""
@@ -78,6 +142,34 @@ class MonitoringLog(db.Model):
     error_type = db.Column(db.String(64), nullable=True)  # dns_error, connection_error, timeout, ssl_error, http_error, none
     error_message = db.Column(db.String(512), nullable=True)
 
+    def __init__(
+        self,
+        website_id: int = None,
+        checked_at: datetime = None,
+        is_available: bool = True,
+        status_code: int = None,
+        response_time_ms: float = None,
+        error_type: str = None,
+        error_message: str = None,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        if website_id is not None:
+            self.website_id = website_id
+        if checked_at is not None:
+            self.checked_at = checked_at
+        self.is_available = is_available
+        if status_code is not None:
+            self.status_code = status_code
+        if response_time_ms is not None:
+            self.response_time_ms = response_time_ms
+        if error_type is not None:
+            self.error_type = error_type
+        if error_message is not None:
+            self.error_message = error_message
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
     def __repr__(self):
         return f'<MonitoringLog website_id={self.website_id} ok={self.is_available} time={self.checked_at}>'
 
@@ -97,6 +189,36 @@ class Incident(db.Model):
 
     notifications = db.relationship('NotificationLog', backref='incident', lazy='dynamic')
 
+    def __init__(
+        self,
+        website_id: int = None,
+        started_at: datetime = None,
+        resolved_at: datetime = None,
+        is_resolved: bool = False,
+        duration_seconds: int = None,
+        error_type: str = None,
+        cause: str = None,
+        resolved_by: str = 'system_auto_recovery',
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        if website_id is not None:
+            self.website_id = website_id
+        if started_at is not None:
+            self.started_at = started_at
+        if resolved_at is not None:
+            self.resolved_at = resolved_at
+        self.is_resolved = is_resolved
+        if duration_seconds is not None:
+            self.duration_seconds = duration_seconds
+        if error_type is not None:
+            self.error_type = error_type
+        if cause is not None:
+            self.cause = cause
+        self.resolved_by = resolved_by
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
     def __repr__(self):
         return f'<Incident id={self.id} website_id={self.website_id} resolved={self.is_resolved}>'
 
@@ -113,6 +235,35 @@ class NotificationLog(db.Model):
     details = db.Column(db.String(512), nullable=True)
     sent_at = db.Column(db.DateTime, default=utc_now, nullable=False, index=True)
 
+    def __init__(
+        self,
+        incident_id: int = None,
+        website_id: int = None,
+        notification_type: str = None,
+        recipient: str = None,
+        status: str = None,
+        details: str = None,
+        sent_at: datetime = None,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        if incident_id is not None:
+            self.incident_id = incident_id
+        if website_id is not None:
+            self.website_id = website_id
+        if notification_type is not None:
+            self.notification_type = notification_type
+        if recipient is not None:
+            self.recipient = recipient
+        if status is not None:
+            self.status = status
+        if details is not None:
+            self.details = details
+        if sent_at is not None:
+            self.sent_at = sent_at
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
     def __repr__(self):
         return f'<NotificationLog id={self.id} type={self.notification_type} status={self.status}>'
 
@@ -125,6 +276,26 @@ class Setting(db.Model):
     value = db.Column(db.Text, nullable=False)
     description = db.Column(db.String(256), nullable=True)
     updated_at = db.Column(db.DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+    def __init__(
+        self,
+        key: str = None,
+        value: str = None,
+        description: str = None,
+        updated_at: datetime = None,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        if key is not None:
+            self.key = key
+        if value is not None:
+            self.value = value
+        if description is not None:
+            self.description = description
+        if updated_at is not None:
+            self.updated_at = updated_at
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
     @classmethod
     def get_value(cls, key: str, default=None):
