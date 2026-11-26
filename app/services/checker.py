@@ -193,10 +193,12 @@ def check_website(website_id: int) -> dict:
     if not website:
         return None
 
-    # Check if localhost testing is permitted via config or env
+    # Check if localhost testing is permitted via config, db setting, or env
     allow_localhost = False
     if current_app:
         allow_localhost = current_app.config.get('ALLOW_LOCALHOST_MONITORING', False)
+    if not allow_localhost:
+        allow_localhost = Setting.get_value('allow_localhost_monitoring', 'false').lower() in ('true', '1', 'yes')
     if not allow_localhost:
         allow_localhost = os.environ.get('ALLOW_LOCALHOST_MONITORING', 'false').lower() in ('true', '1', 'yes')
 

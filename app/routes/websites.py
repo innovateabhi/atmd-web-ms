@@ -52,6 +52,10 @@ def add():
     if form.validate_on_submit():
         url = form.url.data.strip()
         allow_localhost = current_app.config.get('ALLOW_LOCALHOST_MONITORING', False)
+        if not allow_localhost:
+            allow_localhost = Setting.get_value('allow_localhost_monitoring', 'false').lower() in ('true', '1', 'yes')
+        if not allow_localhost:
+            allow_localhost = os.environ.get('ALLOW_LOCALHOST_MONITORING', 'false').lower() in ('true', '1', 'yes')
 
         is_valid, err_msg, _ = validate_target_url(url, allow_localhost=allow_localhost)
         if not is_valid:
@@ -134,6 +138,10 @@ def edit(website_id):
     if form.validate_on_submit():
         url = form.url.data.strip()
         allow_localhost = current_app.config.get('ALLOW_LOCALHOST_MONITORING', False)
+        if not allow_localhost:
+            allow_localhost = Setting.get_value('allow_localhost_monitoring', 'false').lower() in ('true', '1', 'yes')
+        if not allow_localhost:
+            allow_localhost = os.environ.get('ALLOW_LOCALHOST_MONITORING', 'false').lower() in ('true', '1', 'yes')
 
         is_valid, err_msg, _ = validate_target_url(url, allow_localhost=allow_localhost)
         if not is_valid:
