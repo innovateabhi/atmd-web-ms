@@ -1,47 +1,43 @@
-# Linux Automated Website Uptime Monitoring System
+# 🛰️ Linux Automated Website Uptime Monitoring System
 
-An academic infrastructure monitoring platform developed with Python 3, Flask, SQLite, SQLAlchemy, APScheduler, Gunicorn, Nginx, and Systemd, designed for development on Windows and production deployment on Fedora Linux.
+### Self-hosted uptime monitoring, incident tracking and host telemetry for Fedora Linux
+
+![Python](https://img.shields.io/badge/Python-3.10%2B-1E3A8A?style=for-the-badge&logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-3.x-0F172A?style=for-the-badge&logo=flask&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-WAL_Mode-1D4ED8?style=for-the-badge&logo=sqlite&logoColor=white)
+![Fedora](https://img.shields.io/badge/Fedora-Linux-294172?style=for-the-badge&logo=fedora&logoColor=white)
+
+![Nginx](https://img.shields.io/badge/Nginx-Reverse_Proxy-334155?style=flat-square&logo=nginx&logoColor=white)
+![Gunicorn](https://img.shields.io/badge/Gunicorn-WSGI-334155?style=flat-square&logo=gunicorn&logoColor=white)
+![Systemd](https://img.shields.io/badge/Systemd-Supervised-334155?style=flat-square&logo=linux&logoColor=white)
+![SELinux](https://img.shields.io/badge/SELinux-Enforcing-334155?style=flat-square)
+![Tests](https://img.shields.io/badge/Tests-23_passed-15803D?style=flat-square&logo=pytest&logoColor=white)
+![License](https://img.shields.io/badge/License-Academic-64748B?style=flat-square)
+
+> An academic infrastructure monitoring platform developed with **Python 3, Flask, SQLite, SQLAlchemy, APScheduler, Gunicorn, Nginx, and Systemd**, designed for **development on Windows** and **production deployment on Fedora Linux**.
+
+**[Overview](#1-project-overview)**  •  **[Architecture](#5-system-architecture-diagram)**  •  **[Deploy](#11-automated-fedora-linux-deployment)**  •  **[Local Dev](#13-local-development-guide-windows--linux)**  •  **[Testing](#17-automated-pytest-test-suite)**  •  **[Security](#20-security-posture--ssrf-defense-matrix)**
+
+---
+
+## ✨ Highlights
+
+| 🧩 Decoupled Design | 🚨 Smart Incidents | 🛡️ Security First | 📊 Clear Insights |
+|:---:|:---:|:---:|:---:|
+| Web app and scheduler run as separate services | Deduplicated outages with automatic recovery | SSRF checks, CSRF protection, SELinux Enforcing | Latency charts, uptime metrics, CSV exports |
 
 ---
 
 ## Table of Contents
 
-1. [Project Overview](#1-project-overview)
-2. [Academic Objectives & Engineering Goals](#2-academic-objectives--engineering-goals)
-3. [Key Architecture & Technical Features](#3-key-architecture--technical-features)
-4. [Technology Stack](#4-technology-stack)
-5. [System Architecture Diagram](#5-system-architecture-diagram)
-6. [Monitoring Workflow Engine](#6-monitoring-workflow-engine)
-7. [Database Schema & Relational Models](#7-database-schema--relational-models)
-8. [Complete Project Folder Structure](#8-complete-project-folder-structure)
-9. [Fedora Linux Prerequisites & Setup](#9-fedora-linux-prerequisites--setup)
-10. [VMware Workstation Network Configuration](#10-vmware-workstation-network-configuration)
-11. [Automated Fedora Linux Deployment](#11-automated-fedora-linux-deployment)
-12. [Manual Step-by-Step Fedora Linux Deployment](#12-manual-step-by-step-fedora-linux-deployment)
-    - [Step 1: Install System Packages via DNF](#step-1-install-system-packages-via-dnf)
-    - [Step 2: Create Dedicated Unprivileged Service User](#step-2-create-dedicated-unprivileged-service-user)
-    - [Step 3: Setup Directory Structure & Permissions](#step-3-setup-directory-structure--permissions)
-    - [Step 4: Clone Repository](#step-4-clone-repository)
-    - [Step 5: Setup Python Virtual Environment](#step-5-setup-python-virtual-environment)
-    - [Step 6: Configure Environment Variables (.env)](#step-6-configure-environment-variables-env)
-    - [Step 7: Initialize Database Schema](#step-7-initialize-database-schema)
-    - [Step 8: Create Initial Administrator](#step-8-create-initial-administrator)
-    - [Step 9: Configure Gunicorn Application Server](#step-9-configure-gunicorn-application-server)
-    - [Step 10: Configure Nginx Reverse Proxy](#step-10-configure-nginx-reverse-proxy)
-    - [Step 11: Configure Systemd Service Units](#step-11-configure-systemd-service-units)
-    - [Step 12: Configure Firewalld & SELinux Security](#step-12-configure-firewalld--selinux-security)
-    - [Step 13: Enable & Start All Services](#step-13-enable--start-all-services)
-13. [Local Development Guide (Windows / Linux)](#13-local-development-guide-windows--linux)
-14. [Application Access & Dashboard Navigation](#14-application-access--dashboard-navigation)
-15. [Monitoring Demonstration & Verification](#15-monitoring-demonstration--verification)
-16. [Controlled Outage & Recovery Testing](#16-controlled-outage--recovery-testing)
-17. [Automated Pytest Test Suite](#17-automated-pytest-test-suite)
-18. [Troubleshooting & Diagnostics](#18-troubleshooting--diagnostics)
-19. [Screenshot Gallery](#19-screenshot-gallery)
-20. [Security Posture & SSRF Defense Matrix](#20-security-posture--ssrf-defense-matrix)
-21. [Future Enhancements](#21-future-enhancements)
-22. [Conclusion & Engineering Retrospective](#22-conclusion--engineering-retrospective)
-23. [License](#23-license)
+| Section | Topics |
+|---|---|
+| 📘 **Foundation** | [1. Project Overview](#1-project-overview) <br> [2. Academic Objectives & Engineering Goals](#2-academic-objectives--engineering-goals) <br> [3. Key Architecture & Technical Features](#3-key-architecture--technical-features) <br> [4. Technology Stack](#4-technology-stack) |
+| 🏗️ **Design** | [5. System Architecture Diagram](#5-system-architecture-diagram) <br> [6. Monitoring Workflow Engine](#6-monitoring-workflow-engine) <br> [7. Database Schema & Relational Models](#7-database-schema--relational-models) <br> [8. Complete Project Folder Structure](#8-complete-project-folder-structure) |
+| 🚀 **Deployment** | [9. Fedora Linux Prerequisites & Setup](#9-fedora-linux-prerequisites--setup) <br> [10. VMware Workstation Network Configuration](#10-vmware-workstation-network-configuration) <br> [11. Automated Fedora Linux Deployment](#11-automated-fedora-linux-deployment) <br> [12. Manual Step-by-Step Fedora Linux Deployment](#12-manual-step-by-step-fedora-linux-deployment) |
+| 💻 **Usage** | [13. Local Development Guide](#13-local-development-guide-windows--linux) <br> [14. Application Access & Dashboard Navigation](#14-application-access--dashboard-navigation) <br> [15. Monitoring Demonstration & Verification](#15-monitoring-demonstration--verification) <br> [16. Controlled Outage & Recovery Testing](#16-controlled-outage--recovery-testing) |
+| 🔧 **Quality & Support** | [17. Automated Pytest Test Suite](#17-automated-pytest-test-suite) <br> [18. Troubleshooting & Diagnostics](#18-troubleshooting--diagnostics) <br> [19. Screenshot Gallery](#19-screenshot-gallery) <br> [20. Security Posture & SSRF Defense Matrix](#20-security-posture--ssrf-defense-matrix) |
+| 🔭 **Closing** | [21. Future Enhancements](#21-future-enhancements) <br> [22. Conclusion & Engineering Retrospective](#22-conclusion--engineering-retrospective) <br> [23. License](#23-license) |
 
 ---
 
@@ -49,35 +45,49 @@ An academic infrastructure monitoring platform developed with Python 3, Flask, S
 
 The **Linux Automated Website Uptime Monitoring System** is an infrastructure observability and health-checking solution designed for enterprise Linux environments. Developed on Windows and engineered specifically for production deployment on **Fedora Linux**, the system monitors the continuous availability, HTTP status codes, latency in milliseconds, and SSL/DNS stability of registered websites and API endpoints.
 
-Unlike monolithic web applications that run scheduling routines within the web server threads, this system decouples the presentation tier (served by Gunicorn and reverse-proxied by Nginx) from the monitoring evaluation tier (a standalone APScheduler daemon supervised by Systemd). All operational state is persisted in an embedded SQLite 3 database operating under Write-Ahead Logging (WAL) mode for concurrent read-write performance.
+Unlike monolithic web applications that run scheduling routines within the web server threads, this system **decouples** two tiers:
+
+| Tier | Powered By | Responsibility |
+|---|---|---|
+| 🖥️ **Presentation** | Gunicorn + Nginx reverse proxy | Serves the dashboard and APIs |
+| ⏱️ **Monitoring** | Standalone APScheduler daemon under Systemd | Evaluates target health |
+
+All operational state is persisted in an embedded **SQLite 3** database operating under **Write-Ahead Logging (WAL)** mode for concurrent read-write performance.
 
 ---
 
 ## 2. Academic Objectives & Engineering Goals
 
-- **Decoupled Process Architecture:** Eliminate background scheduling race conditions and duplicate job triggers caused by multi-process WSGI server workers.
-- **Accurate Metric Gathering:** Measure real network round-trip latency in milliseconds using high-resolution monotonic timing (`time.perf_counter()`).
-- **Comprehensive Failure Classification:** Differentiate network-level connection refusals, DNS resolution failures, TLS/SSL certificate invalidities, HTTP status code deviations, and connection timeouts.
-- **Automated Incident Lifecycle:** Automatically detect outages, deduplicate open incidents during sustained downtime, timestamp recovery events, and calculate observed outage duration in seconds.
-- **Host Infrastructure Telemetry:** Real-time visibility into the Linux server's own CPU utilization, RAM usage, storage availability, and system uptime using `psutil`.
-- **Hardened Security Posture:** Prevent Server-Side Request Forgery (SSRF) attacks by inspecting resolved target IPs and redirect chains against private/reserved subnets.
-- **Production Linux Standards:** Deploy services under a dedicated unprivileged user, preserve SELinux in Enforcing mode using granular Boolean permissions, and manage firewalls with `firewalld`.
+| Objective | Description |
+|---|---|
+| 🧩 **Decoupled Process Architecture** | Eliminate background scheduling race conditions and duplicate job triggers caused by multi-process WSGI server workers. |
+| ⏱️ **Accurate Metric Gathering** | Measure real network round-trip latency in milliseconds using high-resolution monotonic timing (`time.perf_counter()`). |
+| 🔍 **Comprehensive Failure Classification** | Differentiate network-level connection refusals, DNS resolution failures, TLS/SSL certificate invalidities, HTTP status code deviations, and connection timeouts. |
+| 🚨 **Automated Incident Lifecycle** | Automatically detect outages, deduplicate open incidents during sustained downtime, timestamp recovery events, and calculate observed outage duration in seconds. |
+| 📈 **Host Infrastructure Telemetry** | Real-time visibility into the Linux server's own CPU utilization, RAM usage, storage availability, and system uptime using `psutil`. |
+| 🛡️ **Hardened Security Posture** | Prevent Server-Side Request Forgery (SSRF) attacks by inspecting resolved target IPs and redirect chains against private/reserved subnets. |
+| 🐧 **Production Linux Standards** | Deploy services under a dedicated unprivileged user, preserve SELinux in Enforcing mode using granular Boolean permissions, and manage firewalls with `firewalld`. |
 
 ---
 
 ## 3. Key Architecture & Technical Features
 
-- **Asynchronous Health Checking:** Non-blocking multi-threaded target evaluation with in-memory lock registries that guarantee overlapping checks for the same website cannot occur.
-- **Check-Based Uptime Calculation:** Mathematically rigorous uptime metrics defined as $\frac{\text{Successful Checks}}{\text{Total Completed Checks}} \times 100$, avoiding guesswork or fabricated statistics.
-- **Configurable Monitor Parameters:** Custom check intervals (10s to 86,400s), HTTP request timeouts (1s to 60s), and expected HTTP status codes (e.g. `200` or comma-separated lists like `200, 201, 204, 301`).
-- **Interactive Visualizations:** Client-side Chart.js dashboards showing 24-hour hourly latency trends and monitor-specific performance history.
-- **Reports & Analytical CSV Exports:** Filter monitoring logs and incident records by date range and target website, with single-click CSV export generation.
-- **Optional SMTP Alerts:** Automated email dispatch to DevOps personnel when monitors transition between operational and down states, complete with an audit log table.
-- **Clean UI/UX Design System:** Responsive dashboard adhering to modern infrastructure management ergonomics with white/slate backgrounds, blue accents, status indicator badges, and Lucide icons.
+- ⚡ **Asynchronous Health Checking:** Non-blocking multi-threaded target evaluation with in-memory lock registries that guarantee overlapping checks for the same website cannot occur.
+- 🧮 **Check-Based Uptime Calculation:** Mathematically rigorous uptime metrics, avoiding guesswork or fabricated statistics:
+
+  > **Uptime (%) = (Successful Checks ÷ Total Completed Checks) × 100**
+
+- 🎛️ **Configurable Monitor Parameters:** Custom check intervals (10s to 86,400s), HTTP request timeouts (1s to 60s), and expected HTTP status codes (e.g. `200` or comma-separated lists like `200, 201, 204, 301`).
+- 📊 **Interactive Visualizations:** Client-side Chart.js dashboards showing 24-hour hourly latency trends and monitor-specific performance history.
+- 📑 **Reports & Analytical CSV Exports:** Filter monitoring logs and incident records by date range and target website, with single-click CSV export generation.
+- ✉️ **Optional SMTP Alerts:** Automated email dispatch to DevOps personnel when monitors transition between operational and down states, complete with an audit log table.
+- 🎨 **Clean UI/UX Design System:** Responsive dashboard adhering to modern infrastructure management ergonomics with white/slate backgrounds, blue accents, status indicator badges, and Lucide icons.
 
 ---
 
 ## 4. Technology Stack
+
+### ⚙️ Backend & Data
 
 | Layer | Component | Specification / Purpose |
 |---|---|---|
@@ -90,9 +100,19 @@ Unlike monolithic web applications that run scheduling routines within the web s
 | **Form & Security Suite** | Flask-WTF / WTForms | CSRF protection, input sanitation, and form validation |
 | **Authentication System** | Flask-Login | Session-based authentication and secure cookie management |
 | **System Telemetry** | psutil | Kernel-level CPU, RAM, Disk, and system boot telemetry collection |
+
+### 🎨 Frontend
+
+| Layer | Component | Specification / Purpose |
+|---|---|---|
 | **Frontend Framework** | Bootstrap 5.3 | Responsive CSS framework with custom light slate theme |
 | **Data Visualization** | Chart.js 4.x | Interactive latency trend lines and availability gauges |
 | **Iconography** | Lucide Icons | Clean SVG infrastructure icons |
+
+### 🐧 Infrastructure
+
+| Layer | Component | Specification / Purpose |
+|---|---|---|
 | **WSGI Server** | Gunicorn | Production Python WSGI server (3 worker processes bound to 127.0.0.1:8000) |
 | **Reverse Proxy** | Nginx | Front-facing reverse proxy, static asset handler, and header forwarder |
 | **Process Supervision** | Systemd | Linux service lifecycle supervisor ensuring auto-start on boot |
@@ -398,13 +418,16 @@ linux-uptime-monitor/
 The deployment is optimized for **Fedora Linux 38, 39, or 40** (Server or Workstation). Fedora utilizes the **DNF** package manager, **Systemd** for process initialization, **Firewalld** for network boundary filtering, and **SELinux** in `Enforcing` mode.
 
 ### Verify Operating System Release
+
 ```bash
 cat /etc/fedora-release
 # Output: Fedora release 39 (Thirty Nine)
 ```
 
 ### Required DNF Packages
+
 The deployment requires the standard development toolchain, Python headers, Nginx, and SELinux policy utilities:
+
 ```bash
 sudo dnf install -y python3 python3-devel python3-pip gcc nginx firewalld policycoreutils-python-utils sqlite git
 ```
@@ -413,33 +436,34 @@ sudo dnf install -y python3 python3-devel python3-pip gcc nginx firewalld policy
 
 ## 10. VMware Workstation Network Configuration
 
-When deploying inside a VMware virtual machine running Fedora, configure network virtualization properly so you can access the dashboard from your Windows host browser:
+When deploying inside a VMware virtual machine running Fedora, configure network virtualization properly so you can access the dashboard from your Windows host browser.
 
 ### Choosing Network Mode
 
-1. **Bridged Mode (Recommended for Dedicated LAN IP):**
-   - The virtual machine connects directly to your physical network switch/router.
-   - It receives its own IP address on the same subnet as your Windows host (e.g. `192.168.1.150`).
-   - Any device on your local Wi-Fi or LAN can access the monitoring dashboard.
-2. **NAT Mode (Recommended for Isolated Laptop Development):**
-   - The virtual machine shares the host machine's IP through VMware's internal NAT router.
-   - It receives an internal IP (e.g. `192.168.122.50`).
-   - The Windows host can access the VM directly using that internal IP.
+| | 🌐 Bridged Mode | 💻 NAT Mode |
+|---|---|---|
+| **Recommended for** | Dedicated LAN IP | Isolated laptop development |
+| **How it connects** | Directly to your physical network switch/router | Shares the host's IP through VMware's internal NAT router |
+| **IP address** | Same subnet as the Windows host (e.g. `192.168.1.150`) | Internal IP (e.g. `192.168.122.50`) |
+| **Who can access** | Any device on your local Wi-Fi or LAN | The Windows host, directly via the internal IP |
 
 ### Determining the Fedora VM IP Address
+
 Inside the Fedora terminal, execute:
+
 ```bash
 ip -br addr show
 # or
 hostname -I
 ```
-*Note the IPv4 address (e.g., `192.168.1.150`). This will be the address you enter in your browser.*
+
+> 📌 **Note the IPv4 address** (e.g., `192.168.1.150`). This is the address you enter in your browser.
 
 ---
 
 ## 11. Automated Fedora Linux Deployment
 
-The repository provides an automated installation script ([scripts/setup_fedora.sh](file:///d:/automated-web-monitoring-linux/scripts/setup_fedora.sh)) that handles package installation, user provisioning, virtual environments, database migrations, SELinux policies, firewall openings, Nginx virtual hosts, and Systemd services without destructive commands.
+The repository provides an automated installation script ([`scripts/setup_fedora.sh`](scripts/setup_fedora.sh)) that handles package installation, user provisioning, virtual environments, database migrations, SELinux policies, firewall openings, Nginx virtual hosts, and Systemd services without destructive commands.
 
 ```bash
 # 1. Clone your repository into Fedora
@@ -454,27 +478,31 @@ chmod +x scripts/setup_fedora.sh
 sudo ./scripts/setup_fedora.sh
 ```
 
-The script will automatically print the host URL and generated administrator credentials upon completion.
+> ✅ The script automatically prints the host URL and generated administrator credentials upon completion.
 
 ---
 
 ## 12. Manual Step-by-Step Fedora Linux Deployment
 
-If configuring your server step-by-step for academic evaluation or demonstration, follow these exact commands:
+If configuring your server step-by-step for academic evaluation or demonstration, follow these exact commands.
 
 ### Step 1: Install System Packages via DNF
+
 ```bash
 sudo dnf check-update || true
 sudo dnf install -y python3 python3-devel python3-pip gcc nginx firewalld policycoreutils-python-utils sqlite git
 ```
 
 ### Step 2: Create Dedicated Unprivileged Service User
-Never run network-connected web applications as `root`. Create a dedicated system user:
+
+> 🔒 Never run network-connected web applications as `root`. Create a dedicated system user.
+
 ```bash
 sudo useradd --system --shell /sbin/nologin --comment "Uptime Monitor Service User" uptimemon
 ```
 
 ### Step 3: Setup Directory Structure & Permissions
+
 ```bash
 sudo mkdir -p /opt/linux-uptime-monitor
 sudo mkdir -p /opt/linux-uptime-monitor/instance
@@ -485,6 +513,7 @@ sudo chmod 755 /var/log/uptime-monitor
 ```
 
 ### Step 4: Clone Repository
+
 ```bash
 cd ~
 git clone <YOUR_GITHUB_REPOSITORY_URL> repo-temp
@@ -495,6 +524,7 @@ cd /opt/linux-uptime-monitor
 ```
 
 ### Step 5: Setup Python Virtual Environment
+
 ```bash
 sudo python3 -m venv /opt/linux-uptime-monitor/venv
 sudo /opt/linux-uptime-monitor/venv/bin/pip install --upgrade pip setuptools wheel
@@ -503,7 +533,9 @@ sudo /opt/linux-uptime-monitor/venv/bin/pip install gunicorn
 ```
 
 ### Step 6: Configure Environment Variables (.env)
+
 Generate a cryptographically secure 32-byte hexadecimal secret key:
+
 ```bash
 SECRET_HEX=$(python3 -c "import secrets; print(secrets.token_hex(32))")
 
@@ -527,6 +559,7 @@ EOF"
 ```
 
 ### Step 7: Initialize Database Schema
+
 ```bash
 sudo chown -R uptimemon:uptimemon /opt/linux-uptime-monitor
 sudo chmod 770 /opt/linux-uptime-monitor/instance
@@ -535,19 +568,26 @@ sudo -u uptimemon /opt/linux-uptime-monitor/venv/bin/flask --app run:app init-db
 ```
 
 ### Step 8: Create Initial Administrator
+
+> ⚠️ Replace the sample password below with your own strong, unique password.
+
 ```bash
 sudo -u uptimemon /opt/linux-uptime-monitor/venv/bin/flask --app run:app create-admin --username admin --password "StrongAdminPass123!"
 ```
 
 ### Step 9: Configure Gunicorn Application Server
+
 Verify Gunicorn can bind locally and serve the application:
+
 ```bash
 # Test command (Ctrl+C to stop)
 sudo -u uptimemon /opt/linux-uptime-monitor/venv/bin/gunicorn --workers 3 --bind 127.0.0.1:8000 wsgi:app
 ```
 
 ### Step 10: Configure Nginx Reverse Proxy
+
 Install the provided configuration to proxy port 80 to 127.0.0.1:8000:
+
 ```bash
 sudo cp /opt/linux-uptime-monitor/deployment/nginx/uptime-monitor.conf /etc/nginx/conf.d/uptime-monitor.conf
 sudo nginx -t
@@ -556,7 +596,9 @@ sudo systemctl reload nginx
 ```
 
 ### Step 11: Configure Systemd Service Units
+
 Install both systemd units to supervise Gunicorn and the APScheduler worker:
+
 ```bash
 sudo cp /opt/linux-uptime-monitor/deployment/systemd/uptime-monitor.service /etc/systemd/system/
 sudo cp /opt/linux-uptime-monitor/deployment/systemd/uptime-worker.service /etc/systemd/system/
@@ -564,7 +606,9 @@ sudo systemctl daemon-reload
 ```
 
 ### Step 12: Configure Firewalld & SELinux Security
-**Do not disable SELinux or the firewall.** Enable the necessary permissions:
+
+> 🛡️ **Do not disable SELinux or the firewall.** Enable only the necessary permissions.
+
 ```bash
 # 1. Allow Nginx to connect to Gunicorn via network socket
 sudo setsebool -P httpd_can_network_connect 1
@@ -579,6 +623,7 @@ sudo firewall-cmd --reload
 ```
 
 ### Step 13: Enable & Start All Services
+
 ```bash
 sudo systemctl enable --now uptime-monitor.service
 sudo systemctl enable --now uptime-worker.service
@@ -619,45 +664,60 @@ python run.py
 python monitoring/worker.py
 ```
 
-Open your browser at **`http://127.0.0.1:5000`**.
+🌍 Open your browser at **`http://127.0.0.1:5000`**.
 
 ---
 
 ## 14. Application Access & Dashboard Navigation
 
-Sign in using your administrator credentials (`admin` / `admin123`).
+Sign in using your administrator credentials. The local development setup above uses `admin` / `admin123`.
+
+> ⚠️ `admin123` is for **local development only**. Never use it on a deployed server.
 
 ### Primary Dashboard Views
 
-1. **Infrastructure Overview (`/dashboard`):**
-   - High-level metric cards: Total Monitors, Operational, Unavailable (Down), Paused, Average Latency, and 24-hour Check-Based Uptime Percentage.
-   - Interactive 24-hour hourly latency trend line chart.
-   - Real-time monitors table with visual status indicators.
-   - Recent incidents summary with root cause badges.
-   - Automatic background polling every 30 seconds.
-2. **Monitors Management (`/websites`):**
-   - Searchable inventory of all endpoints.
-   - Actions per monitor: Manual **Check Now**, **Pause/Resume**, **Edit Settings**, and **Delete**.
-   - Direct links to detailed analytics for each website.
-3. **Monitor Analytics (`/websites/<id>`):**
-   - Time-range selector: **Last 24 Hours** vs. **Last 7 Days**.
-   - Performance statistics: Average, Minimum, and Maximum response times in milliseconds.
-   - Latency history chart rendered via Chart.js.
-   - Historical check log table showing the last 50 health checks with HTTP status codes and exact millisecond response times.
-   - Incidents history specific to this monitor.
-4. **Incident Management (`/incidents`):**
-   - Dedicated tracker separating **Active Outages** from **Resolved Incidents**.
-   - Root cause classifications (`http_error`, `timeout`, `dns_error`, `ssl_error`, `connection_error`).
-   - Exact observed downtime duration calculated in seconds upon recovery.
-5. **Reports & Data Export (`/reports`):**
-   - Summary performance statistics across all or selected websites.
-   - Single-click **Export Checks CSV** and **Export Incidents CSV** buttons.
-6. **Host System Telemetry (`/system`):**
-   - Real hardware performance gauges: CPU utilization %, RAM used vs. total GB, Storage usage %, system uptime, and Linux load averages.
-   - Automatically polls the server every 5 seconds.
-7. **Settings & Diagnostics (`/settings`):**
-   - Global check interval and timeout defaults.
-   - SMTP configuration with a **Send Test Alert Email** diagnostic tool.
+#### 🏠 1. Infrastructure Overview (`/dashboard`)
+
+- High-level metric cards: Total Monitors, Operational, Unavailable (Down), Paused, Average Latency, and 24-hour Check-Based Uptime Percentage.
+- Interactive 24-hour hourly latency trend line chart.
+- Real-time monitors table with visual status indicators.
+- Recent incidents summary with root cause badges.
+- Automatic background polling every 30 seconds.
+
+#### 🌐 2. Monitors Management (`/websites`)
+
+- Searchable inventory of all endpoints.
+- Actions per monitor: Manual **Check Now**, **Pause/Resume**, **Edit Settings**, and **Delete**.
+- Direct links to detailed analytics for each website.
+
+#### 📈 3. Monitor Analytics (`/websites/<id>`)
+
+- Time-range selector: **Last 24 Hours** vs. **Last 7 Days**.
+- Performance statistics: Average, Minimum, and Maximum response times in milliseconds.
+- Latency history chart rendered via Chart.js.
+- Historical check log table showing the last 50 health checks with HTTP status codes and exact millisecond response times.
+- Incidents history specific to this monitor.
+
+#### 🚨 4. Incident Management (`/incidents`)
+
+- Dedicated tracker separating **Active Outages** from **Resolved Incidents**.
+- Root cause classifications (`http_error`, `timeout`, `dns_error`, `ssl_error`, `connection_error`).
+- Exact observed downtime duration calculated in seconds upon recovery.
+
+#### 📑 5. Reports & Data Export (`/reports`)
+
+- Summary performance statistics across all or selected websites.
+- Single-click **Export Checks CSV** and **Export Incidents CSV** buttons.
+
+#### 🖥️ 6. Host System Telemetry (`/system`)
+
+- Real hardware performance gauges: CPU utilization %, RAM used vs. total GB, Storage usage %, system uptime, and Linux load averages.
+- Automatically polls the server every 5 seconds.
+
+#### ⚙️ 7. Settings & Diagnostics (`/settings`)
+
+- Global check interval and timeout defaults.
+- SMTP configuration with a **Send Test Alert Email** diagnostic tool.
 
 ---
 
@@ -666,56 +726,75 @@ Sign in using your administrator credentials (`admin` / `admin123`).
 ### Adding a Live Public Website
 
 1. Log in and click **Add Monitor**.
-2. Enter:
-   - **Monitor Name:** `Google Production`
-   - **Target URL:** `https://www.google.com`
-   - **Check Interval:** `60` seconds
-   - **Request Timeout:** `10` seconds
-   - **Expected Status Code:** `200`
+2. Enter the following values:
+
+   | Field | Value |
+   |---|---|
+   | **Monitor Name** | `Google Production` |
+   | **Target URL** | `https://www.google.com` |
+   | **Check Interval** | `60` seconds |
+   | **Request Timeout** | `10` seconds |
+   | **Expected Status Code** | `200` |
+
 3. Click **Save Monitor**.
 4. The system immediately executes an initial health check.
-5. Within seconds, the status dot turns **green (Operational)**, the response time is logged (e.g. `45.2 ms`), and the HTTP status code `200` is displayed.
+5. Within seconds, the status dot turns 🟢 **green (Operational)**, the response time is logged (e.g. `45.2 ms`), and the HTTP status code `200` is displayed.
 
 ---
 
 ## 16. Controlled Outage & Recovery Testing
 
-A standalone HTTP test server ([scripts/test_server.py](file:///d:/automated-web-monitoring-linux/scripts/test_server.py)) is included to simulate various operational states:
+A standalone HTTP test server ([`scripts/test_server.py`](scripts/test_server.py)) is included to simulate various operational states.
+
+> 📌 The test server runs on `127.0.0.1`. To monitor it, localhost monitoring must be enabled with `ALLOW_LOCALHOST_MONITORING=true` in `.env`, followed by a restart of the web app and worker. Use this for testing only, then set it back to `false`.
 
 ### 1. Launch the Test Server
+
 In a separate terminal:
+
 ```bash
 python scripts/test_server.py --port 8085
 ```
+
 *The test server starts on `http://127.0.0.1:8085`.*
 
 ### 2. Register the Test Monitor
+
 In the dashboard:
-- **Name:** `Academic Test Service`
-- **Target URL:** `http://127.0.0.1:8085/dynamic`
-- **Check Interval:** `10` seconds
-- **Request Timeout:** `5` seconds
-- **Expected Status Code:** `200`
+
+| Field | Value |
+|---|---|
+| **Name** | `Academic Test Service` |
+| **Target URL** | `http://127.0.0.1:8085/dynamic` |
+| **Check Interval** | `10` seconds |
+| **Request Timeout** | `5` seconds |
+| **Expected Status Code** | `200` |
 
 ### 3. Simulate Website Outage
+
 Trigger an outage by making a request to the test server's control endpoint:
+
 ```bash
 curl http://127.0.0.1:8085/simulate/down
 ```
+
 - The test server switches to returning **HTTP 503 Service Unavailable**.
 - Within 10 seconds, the background worker detects the status mismatch.
-- On the dashboard, the status indicator turns **red (Down)**.
+- On the dashboard, the status indicator turns 🔴 **red (Down)**.
 - A new incident is recorded in the **Incidents** tab with the cause `HTTP 503 does not match expected status codes [200]`.
 - Subsequent failures do **not** create duplicate open incidents.
 
 ### 4. Simulate Website Recovery
+
 Restore the test server:
+
 ```bash
 curl http://127.0.0.1:8085/simulate/recover
 ```
+
 - The test server returns to **HTTP 200 OK**.
 - On the next 10-second check cycle, the worker records a successful probe.
-- The monitor status returns to **green (Operational)**.
+- The monitor status returns to 🟢 **green (Operational)**.
 - The open incident is automatically marked **Resolved**, and the observed downtime duration in seconds is computed and displayed.
 
 ---
@@ -724,13 +803,24 @@ curl http://127.0.0.1:8085/simulate/recover
 
 The project includes **23 automated tests** covering authentication, SSRF security validation, website management, probe failures, incident deduplication, incident auto-recovery, and check-based uptime calculations.
 
+| Suite | Tests |
+|---|:---:|
+| 🔐 Authentication | 7 |
+| 🚨 Incidents | 3 |
+| 📡 Monitoring | 5 |
+| 🧮 Uptime & CSV Export | 2 |
+| 🌐 Websites & SSRF | 6 |
+| **Total** | **23** |
+
 Execute the test suite with:
+
 ```bash
 # In virtual environment:
 pytest -v
 ```
 
-### Verified Test Output:
+### Verified Test Output
+
 ```text
 tests/test_auth.py::test_login_successful PASSED                         [  4%]
 tests/test_auth.py::test_login_invalid_password PASSED                   [  8%]
@@ -764,19 +854,25 @@ tests/test_websites.py::test_delete_website PASSED                       [100%]
 ## 18. Troubleshooting & Diagnostics
 
 ### 1. Nginx Returns `502 Bad Gateway`
-- **Cause:** Gunicorn is either not running or SELinux is blocking Nginx from connecting to TCP port 8000.
-- **Verification:**
-  ```bash
-  sudo systemctl status uptime-monitor.service
-  sudo getsebool httpd_can_network_connect
-  ```
-- **Fix:**
-  ```bash
-  sudo systemctl restart uptime-monitor.service
-  sudo setsebool -P httpd_can_network_connect 1
-  ```
+
+**Cause:** Gunicorn is either not running or SELinux is blocking Nginx from connecting to TCP port 8000.
+
+**Verification:**
+
+```bash
+sudo systemctl status uptime-monitor.service
+sudo getsebool httpd_can_network_connect
+```
+
+**Fix:**
+
+```bash
+sudo systemctl restart uptime-monitor.service
+sudo setsebool -P httpd_can_network_connect 1
+```
 
 ### 2. Inspecting Production Logs
+
 ```bash
 # View Gunicorn application server logs
 sudo tail -f /var/log/uptime-monitor/gunicorn-error.log
@@ -789,14 +885,18 @@ sudo tail -f /var/log/nginx/error.log
 ```
 
 ### 3. Resetting Administrator Password
+
 If administrator credentials are forgotten:
+
 ```bash
 cd /opt/linux-uptime-monitor
 sudo -u uptimemon /opt/linux-uptime-monitor/venv/bin/flask --app run:app create-admin --username admin --password "NewSecurePassword123!"
 ```
 
 ### 4. Database Permission Denied on Linux
+
 If logs report `sqlite3.OperationalError: unable to open database file`:
+
 ```bash
 sudo chown -R uptimemon:uptimemon /opt/linux-uptime-monitor/instance
 sudo chmod 770 /opt/linux-uptime-monitor/instance
@@ -809,20 +909,20 @@ sudo chmod 660 /opt/linux-uptime-monitor/instance/uptime_monitor.sqlite3*
 
 The dashboard features a clean, light-slate interface:
 
-| View Description | Screenshot Reference |
-|---|---|
-| **Overview Dashboard**<br/>Metric cards, 24h latency chart, operational indicators | `screenshots/01_overview_dashboard.png` |
-| **Monitors Management**<br/>Table view of registered targets, intervals, and actions | `screenshots/02_monitors_list.png` |
-| **Monitor Detail Analytics**<br/>Historical response times, status history, recent 50 logs | `screenshots/03_website_detail_analytics.png` |
-| **Incident Management**<br/>Active outages, resolved incidents, and duration tracking | `screenshots/04_incident_management.png` |
-| **Host System Telemetry**<br/>Real-time CPU, RAM, Disk, and Linux uptime via psutil | `screenshots/05_system_telemetry.png` |
-| **Reports & CSV Export**<br/>Filtered analytical summaries and data export controls | `screenshots/06_csv_reports.png` |
+| View | What It Shows | Screenshot Reference |
+|---|---|---|
+| 🏠 **Overview Dashboard** | Metric cards, 24h latency chart, operational indicators | `screenshots/01_overview_dashboard.png` |
+| 🌐 **Monitors Management** | Table view of registered targets, intervals, and actions | `screenshots/02_monitors_list.png` |
+| 📈 **Monitor Detail Analytics** | Historical response times, status history, recent 50 logs | `screenshots/03_website_detail_analytics.png` |
+| 🚨 **Incident Management** | Active outages, resolved incidents, and duration tracking | `screenshots/04_incident_management.png` |
+| 🖥️ **Host System Telemetry** | Real-time CPU, RAM, Disk, and Linux uptime via psutil | `screenshots/05_system_telemetry.png` |
+| 📑 **Reports & CSV Export** | Filtered analytical summaries and data export controls | `screenshots/06_csv_reports.png` |
 
 ---
 
 ## 20. Security Posture & SSRF Defense Matrix
 
-```
+```text
 Target URL Input (e.g. http://127.0.0.1:8085/health or https://example.com)
                           │
                           ▼
@@ -869,28 +969,37 @@ Loop to Step 1 up to 5 hops
 
 ## 21. Future Enhancements
 
-- **Distributed Monitoring Nodes:** Deploy remote lightweight agent probes across multiple geographic cloud regions to detect localized BGP/DNS routing partitions.
-- **Webhook Integrations:** Native incoming webhook integrations for Slack, Discord, Microsoft Teams, and PagerDuty.
-- **SSL Certificate Expiry Alerts:** Proactively alert administrators 30, 14, and 7 days prior to SSL/TLS certificate expiration.
-- **Multi-Factor Authentication (MFA):** Implement TOTP-based 2FA (e.g. Google Authenticator) for administrative accounts.
+- [ ] 🌍 **Distributed Monitoring Nodes:** Deploy remote lightweight agent probes across multiple geographic cloud regions to detect localized BGP/DNS routing partitions.
+- [ ] 🔗 **Webhook Integrations:** Native incoming webhook integrations for Slack, Discord, Microsoft Teams, and PagerDuty.
+- [ ] 📜 **SSL Certificate Expiry Alerts:** Proactively alert administrators 30, 14, and 7 days prior to SSL/TLS certificate expiration.
+- [ ] 🔑 **Multi-Factor Authentication (MFA):** Implement TOTP-based 2FA (e.g. Google Authenticator) for administrative accounts.
 
 ---
 
 ## 22. Conclusion & Engineering Retrospective
 
-The **Linux Automated Website Uptime Monitoring System** demonstrates that reliable infrastructure observability does not require bloated third-party software stacks or paid cloud subscriptions. 
+The **Linux Automated Website Uptime Monitoring System** demonstrates that reliable infrastructure observability does not require bloated third-party software stacks or paid cloud subscriptions.
 
-By utilizing:
-- **Flask and SQLAlchemy** for secure presentation and data persistence,
-- **SQLite in WAL mode** for lightweight, zero-maintenance transactional storage,
-- **APScheduler** in a standalone worker daemon to eliminate job concurrency drift,
-- **Gunicorn and Nginx** for hardened WSGI serving and static asset delivery, and
-- **Systemd, Firewalld, and SELinux** to respect Linux server security conventions,
+| Technology | Role |
+|---|---|
+| **Flask + SQLAlchemy** | Secure presentation and data persistence |
+| **SQLite in WAL mode** | Lightweight, zero-maintenance transactional storage |
+| **APScheduler** (standalone daemon) | Eliminates job concurrency drift |
+| **Gunicorn + Nginx** | Hardened WSGI serving and static asset delivery |
+| **Systemd, Firewalld, SELinux** | Respects Linux server security conventions |
 
-the project provides an extensible, academically rigorous platform that is ready for production use on Fedora Linux.
+The result is an extensible, academically rigorous platform that is ready for production use on Fedora Linux.
 
 ---
 
 ## 23. License
 
 This software and its documentation are developed and released under the academic project license. See the [LICENSE](LICENSE) file for complete details.
+
+---
+
+**🛰️ Linux Automated Website Uptime Monitoring System**
+
+*Built with Python on Windows. Engineered for Fedora Linux.*
+
+[⬆️ Back to Table of Contents](#table-of-contents)
