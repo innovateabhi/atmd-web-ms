@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Linux System Information{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Host System Telemetry</h4>
+        <p class="text-muted small mb-0">Hardware utilization and operating system diagnostics collected via <code>psutil</code>.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-light text-secondary border d-inline-flex align-items-center gap-1">
+            <span class="status-dot up"></span>
+            <span>Live Telemetry (5s poll)</span>
+        </span>
+    </div>
+</div>
+
+<!-- OS & Host Details Banner -->
+<div class="card border border-slate-200 shadow-sm rounded-3 p-4 bg-white mb-4">
+    <div class="row g-3">
+        <div class="col-sm-6 col-lg-3">
+            <div class="text-muted small">Hostname</div>
+            <div class="fw-bold fs-6 text-dark font-mono text-truncate" id="hostnameVal">{{ metrics.hostname }}</div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="text-muted small">Operating System</div>
+            <div class="fw-bold fs-6 text-dark font-mono text-truncate" id="osVal">{{ metrics.os_name }}</div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="text-muted small">Architecture / Python</div>
+            <div class="fw-bold fs-6 text-dark font-mono" id="archVal">{{ metrics.architecture }} / Py {{ metrics.python_version }}</div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="text-muted small">System Uptime</div>
+            <div class="fw-bold fs-6 text-primary font-mono" id="uptimeVal">{{ metrics.uptime_formatted }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- CPU, RAM, Disk Cards -->
+<div class="row g-4 mb-4">
+    <!-- CPU -->
+    <div class="col-lg-4">
+        <div class="card border border-slate-200 shadow-sm rounded-3 p-4 bg-white h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="p-2 bg-primary bg-opacity-10 text-primary rounded-3">
+                        <i data-lucide="cpu" style="width: 20px; height: 20px;"></i>
+                    </span>
+                    <span class="fw-bold">CPU Utilization</span>
+                </div>
+                <span class="fs-4 fw-bold text-dark font-mono" id="cpuPercentVal">{{ metrics.cpu_percent }}%</span>
+            </div>
+            <div class="progress progress-metric mb-3">
+                <div id="cpuProgressBar" class="progress-bar bg-primary" role="progressbar" style="width: {{ metrics.cpu_percent }}%;"></div>
+            </div>
+            <div class="d-flex justify-content-between small text-muted">
+                <span>Logical Cores: <strong class="text-dark">{{ metrics.cpu_count_logical }}</strong></span>
+                <span>Physical Cores: <strong class="text-dark">{{ metrics.cpu_count_physical }}</strong></span>
+            </div>
+            {% if metrics.load_average %}
+            <div class="small text-muted mt-2">
+                Linux Load Avg (1m, 5m, 15m): <strong class="text-dark font-mono">{{ metrics.load_average|join(', ') }}</strong>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- RAM -->
+    <div class="col-lg-4">
+        <div class="card border border-slate-200 shadow-sm rounded-3 p-4 bg-white h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="p-2 bg-success bg-opacity-10 text-success rounded-3">
+                        <i data-lucide="hard-drive" style="width: 20px; height: 20px;"></i>
+                    </span>
+                    <span class="fw-bold">Memory (RAM)</span>
+                </div>
+                <span class="fs-4 fw-bold text-dark font-mono" id="ramPercentVal">{{ metrics.ram_percent }}%</span>
+            </div>
+            <div class="progress progress-metric mb-3">
+                <div id="ramProgressBar" class="progress-bar bg-success" role="progressbar" style="width: {{ metrics.ram_percent }}%;"></div>
+            </div>
+            <div class="d-flex justify-content-between small text-muted">
+                <span>Used: <strong class="text-dark font-mono" id="ramUsedVal">{{ metrics.ram_used_gb }} GB</strong></span>
+                <span>Total: <strong class="text-dark font-mono">{{ metrics.ram_total_gb }} GB</strong></span>
+            </div>
+            <div class="small text-muted mt-2">
+                Available: <strong class="text-dark font-mono" id="ramAvailVal">{{ metrics.ram_available_gb }} GB</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Disk -->
+    <div class="col-lg-4">
+        <div class="card border border-slate-200 shadow-sm rounded-3 p-4 bg-white h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="p-2 bg-info bg-opacity-10 text-info rounded-3">
+                        <i data-lucide="database" style="width: 20px; height: 20px;"></i>
+                    </span>
+                    <span class="fw-bold">Primary Storage</span>
+                </div>
+                <span class="fs-4 fw-bold text-dark font-mono" id="diskPercentVal">{{ metrics.disk_percent }}%</span>
+            </div>
+            <div class="progress progress-metric mb-3">
+                <div id="diskProgressBar" class="progress-bar bg-info" role="progressbar" style="width: {{ metrics.disk_percent }}%;"></div>
+            </div>
+            <div class="d-flex justify-content-between small text-muted">
+                <span>Used: <strong class="text-dark font-mono" id="diskUsedVal">{{ metrics.disk_used_gb }} GB</strong></span>
+                <span>Total: <strong class="text-dark font-mono">{{ metrics.disk_total_gb }} GB</strong></span>
+            </div>
+            <div class="small text-muted mt-2">
+                Free: <strong class="text-dark font-mono" id="diskFreeVal">{{ metrics.disk_free_gb }} GB</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Architecture & System Service Deployment Status -->
+<div class="card border border-slate-200 shadow-sm rounded-3 p-4 bg-white">
+    <h6 class="fw-bold mb-3 border-bottom pb-2">Fedora Linux Production Service Architecture</h6>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="p-3 bg-light rounded-3 border">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="fw-semibold small font-mono">uptime-monitor.service</span>
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Gunicorn WSGI</span>
+                </div>
+                <div class="text-muted small">
+                    Binds to <code>127.0.0.1:8000</code>. Serves administrative web portal and authenticated REST telemetry endpoints via Nginx reverse proxy.
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="p-3 bg-light rounded-3 border">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="fw-semibold small font-mono">uptime-worker.service</span>
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">APScheduler Daemon</span>
+                </div>
+                <div class="text-muted small">
+                    Executes non-blocking background HTTP health checks, measures latency in ms, detects connection/SSL errors, and manages downtime incidents.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function refreshSystemMetrics() {
+    fetch('/system/api/metrics')
+        .then(res => res.json())
+        .then(m => {
+            document.getElementById('cpuPercentVal').innerText = m.cpu_percent + '%';
+            document.getElementById('cpuProgressBar').style.width = m.cpu_percent + '%';
+
+            document.getElementById('ramPercentVal').innerText = m.ram_percent + '%';
+            document.getElementById('ramProgressBar').style.width = m.ram_percent + '%';
+            document.getElementById('ramUsedVal').innerText = m.ram_used_gb + ' GB';
+            document.getElementById('ramAvailVal').innerText = m.ram_available_gb + ' GB';
+
+            document.getElementById('diskPercentVal').innerText = m.disk_percent + '%';
+            document.getElementById('diskProgressBar').style.width = m.disk_percent + '%';
+            document.getElementById('diskUsedVal').innerText = m.disk_used_gb + ' GB';
+            document.getElementById('diskFreeVal').innerText = m.disk_free_gb + ' GB';
+
+            document.getElementById('uptimeVal').innerText = m.uptime_formatted;
+        })
+        .catch(err => console.error("Error refreshing system metrics:", err));
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    setInterval(refreshSystemMetrics, 5000);
+});
+</script>
+{% endblock %}

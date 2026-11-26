@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Monitors Inventory{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Monitored Websites</h4>
+        <p class="text-muted small mb-0">Manage automated HTTP/HTTPS health checks, alert thresholds and timeouts.</p>
+    </div>
+    <div>
+        <a href="{{ url_for('websites.add') }}" class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 shadow-sm">
+            <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+            <span>Add Monitor</span>
+        </a>
+    </div>
+</div>
+
+<div class="card border border-slate-200 shadow-sm rounded-3 bg-white">
+    {% if websites %}
+    <div class="table-responsive">
+        <table class="table table-custom align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Name & URL</th>
+                    <th>24h Uptime</th>
+                    <th>Avg Latency</th>
+                    <th>Interval</th>
+                    <th>Timeout</th>
+                    <th>Last Checked</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for site in websites %}
+                {% set stats = stats_map.get(site.id, {}) %}
+                <tr>
+                    <td>
+                        {% if not site.is_active %}
+                            <span class="badge-status badge-status-paused"><span class="status-dot paused"></span>Paused</span>
+                        {% elif site.current_status == 'operational' %}
+                            <span class="badge-status badge-status-up"><span class="status-dot up"></span>Operational</span>
+                        {% elif site.current_status == 'unavailable' %}
+                            <span class="badge-status badge-status-down"><span class="status-dot down"></span>Down</span>
+                        {% else %}
+                            <span class="badge-status badge-status-warn"><span class="status-dot paused"></span>Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="fw-semibold">
+                            <a href="{{ url_for('websites.detail', website_id=site.id) }}" class="text-dark text-decoration-none">
+                                {{ site.name }}
+                            </a>
+                        </div>
+                        <div class="font-mono text-muted small text-truncate" style="max-width: 280px;">
+                            {{ site.url }}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="fw-semibold">{{ stats.uptime_24h }}%</span>
+                        <div class="text-muted" style="font-size: 0.72rem;">{{ stats.total_checks_24h }} checks</div>
+                    </td>
+                    <td>
+                        {% if stats.avg_rt_24h is not none %}
+                            <span class="fw-semibold">{{ stats.avg_rt_24h }} ms</span>
+                        {% else %}
+                            <span class="text-muted small">--</span>
+                        {% endif %}
+                    </td>
+                    <td><span class="badge bg-light text-dark border font-mono">{{ site.check_interval_seconds }}s</span></td>
+                    <td><span class="badge bg-light text-dark border font-mono">{{ site.timeout_seconds }}s</span></td>
+                    <td class="small text-muted">
+                        {{ site.last_checked_at.strftime('%Y-%m-%d %H:%M:%S UTC') if site.last_checked_at else 'Never' }}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-inline-flex gap-1">
+                            <form method="POST" action="{{ url_for('websites.manual_check', website_id=site.id) }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary btn-icon" title="Check Now">
+                                    <i data-lucide="play" style="width: 14px; height: 14px;"></i>
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('websites.toggle', website_id=site.id) }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary btn-icon" title="{% if site.is_active %}Pause Monitoring{% else %}Resume Monitoring{% endif %}">
+                                    {% if site.is_active %}
+                                    <i data-lucide="pause" style="width: 14px; height: 14px;"></i>
+                                    {% else %}
+                                    <i data-lucide="play-circle" style="width: 14px; height: 14px;"></i>
+                                    {% endif %}
+                                </button>
+                            </form>
+                            <a href="{{ url_for('websites.edit', website_id=site.id) }}" class="btn btn-sm btn-outline-secondary btn-icon" title="Edit Monitor">
+                                <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('websites.delete', website_id=site.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete monitor {{ site.name }}? All monitoring history will be deleted.');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger btn-icon" title="Delete Monitor">
+                                    <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i data-lucide="globe"></i>
+        <h5 class="fw-bold mb-1">No monitors configured</h5>
+        <p class="text-muted small mb-3">Get started by configuring a website or API endpoint for automated monitoring.</p>
+        <a href="{{ url_for('websites.add') }}" class="btn btn-primary btn-sm">Add Monitor</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

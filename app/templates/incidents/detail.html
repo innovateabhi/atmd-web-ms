@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Incident #{{ incident.id }} - Diagnostics{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h4 class="fw-bold mb-0">Incident #{{ incident.id }}</h4>
+            {% if incident.is_resolved %}
+                <span class="badge-status badge-status-up">Resolved</span>
+            {% else %}
+                <span class="badge-status badge-status-down">Active Outage</span>
+            {% endif %}
+        </div>
+        <div class="text-muted small">
+            Monitored Target: <strong>{{ incident.website.name }}</strong> (<span class="font-mono">{{ incident.website.url }}</span>)
+        </div>
+    </div>
+    <a href="{{ url_for('incidents.index') }}" class="btn btn-sm btn-outline-secondary">&larr; Back to Incidents</a>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card border border-slate-200 shadow-sm rounded-3 p-4 bg-white h-100">
+            <h6 class="fw-bold mb-3 border-bottom pb-2">Incident Timeline & Diagnostics</h6>
+            <div class="mb-3">
+                <label class="small text-muted d-block">Error Classification</label>
+                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 font-mono fs-6">
+                    {{ incident.error_type }}
+                </span>
+            </div>
+            <div class="mb-3">
+                <label class="small text-muted d-block">Recorded Cause</label>
+                <div class="p-2 bg-light rounded small font-mono text-break">
+                    {{ incident.cause }}
+                </div>
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-sm-6">
+                    <label class="small text-muted d-block">Downtime Initiated</label>
+                    <div class="fw-semibold small font-mono">{{ incident.started_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}</div>
+                </div>
+                <div class="col-sm-6">
+                    <label class="small text-muted d-block">Resolution Timestamp</label>
+                    <div class="fw-semibold small font-mono">
+                        {{ incident.resolved_at.strftime('%Y-%m-%d %H:%M:%S UTC') if incident.resolved_at else 'Still Active' }}
+                    </div>
+                </div>
+            </div>
+            <div>
+                <label class="small text-muted d-block">Observed Outage Duration</label>
+                <div class="fw-bold fs-5 text-dark font-mono">
+                    {% if incident.duration_seconds is not none %}
+                        {{ incident.duration_seconds }} seconds
+                    {% else %}
+                        <span class="text-danger">Ongoing Outage</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card border border-slate-200 shadow-sm rounded-3 p-4 bg-white h-100">
+            <h6 class="fw-bold mb-3 border-bottom pb-2">Dispatch & Notification Logs</h6>
+            {% if notifications %}
+            <div class="table-responsive">
+                <table class="table table-sm align-middle small mb-0">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Recipient</th>
+                            <th>Status</th>
+                            <th>Sent At (UTC)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for n in notifications %}
+                        <tr>
+                            <td><span class="badge bg-light text-dark border">{{ n.notification_type }}</span></td>
+                            <td class="font-mono">{{ n.recipient }}</td>
+                            <td>
+                                {% if n.status == 'sent' %}
+                                    <span class="text-success fw-semibold">Sent</span>
+                                {% elif n.status == 'skipped' %}
+                                    <span class="text-secondary">Skipped</span>
+                                {% else %}
+                                    <span class="text-danger">Failed</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted">{{ n.sent_at.strftime('%H:%M:%S') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-muted small text-center p-4">
+                <i data-lucide="mail" class="mb-2" style="width: 24px; height: 24px;"></i>
+                <div>No email notifications were triggered for this incident (SMTP disabled or unconfigured).</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Reports & Exports{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Reports & Analytics Export</h4>
+        <p class="text-muted small mb-0">Generate health check summaries, compliance analytics and export raw monitoring datasets as CSV.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('reports.export_logs_csv', website_id=current_website_id, days=days) }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 shadow-sm">
+            <i data-lucide="download" style="width: 15px; height: 15px;"></i>
+            <span>Export Checks CSV</span>
+        </a>
+        <a href="{{ url_for('reports.export_incidents_csv', website_id=current_website_id, days=days) }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 shadow-sm">
+            <i data-lucide="file-text" style="width: 15px; height: 15px;"></i>
+            <span>Export Incidents CSV</span>
+        </a>
+    </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card border border-slate-200 shadow-sm rounded-3 p-3 bg-white mb-4">
+    <form method="GET" class="row g-2 align-items-center">
+        <div class="col-auto">
+            <label class="small text-muted fw-semibold">Website Filter:</label>
+        </div>
+        <div class="col-auto">
+            <select name="website_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">All Websites</option>
+                {% for w in websites %}
+                <option value="{{ w.id }}" {% if current_website_id == w.id %}selected{% endif %}>{{ w.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-auto ms-md-3">
+            <label class="small text-muted fw-semibold">Reporting Time Window:</label>
+        </div>
+        <div class="col-auto">
+            <select name="days" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="1" {% if days == 1 %}selected{% endif %}>Last 24 Hours</option>
+                <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 Days</option>
+                <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 Days</option>
+            </select>
+        </div>
+    </form>
+</div>
+
+<!-- Summary Metrics for the Range -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card-metric">
+            <div class="metric-title text-success">Uptime Percentage</div>
+            <div class="metric-value text-slate-900">{{ uptime_pct }}<span class="fs-6 fw-normal ms-1">%</span></div>
+            <div class="metric-subtitle">Check-based ratio</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card-metric">
+            <div class="metric-title text-primary">Avg Latency</div>
+            <div class="metric-value text-primary">{{ avg_rt }}<span class="fs-6 fw-normal ms-1">ms</span></div>
+            <div class="metric-subtitle">Evaluated mean</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card-metric">
+            <div class="metric-title">Min Latency</div>
+            <div class="metric-value text-slate-900">{{ min_rt }}<span class="fs-6 fw-normal ms-1">ms</span></div>
+            <div class="metric-subtitle">Best response</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card-metric">
+            <div class="metric-title">Max Latency</div>
+            <div class="metric-value text-slate-900">{{ max_rt }}<span class="fs-6 fw-normal ms-1">ms</span></div>
+            <div class="metric-subtitle">Peak spike</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card-metric">
+            <div class="metric-title">Checks Executed</div>
+            <div class="metric-value text-slate-900">{{ total_checks }}</div>
+            <div class="metric-subtitle">{{ success_checks }} succeeded</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card-metric">
+            <div class="metric-title text-danger">Recorded Incidents</div>
+            <div class="metric-value text-danger">{{ incident_count }}</div>
+            <div class="metric-subtitle">During selected period</div>
+        </div>
+    </div>
+</div>
+
+<!-- Incident Summary Table in Report -->
+<div class="card border border-slate-200 shadow-sm rounded-3 bg-white">
+    <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
+        <div class="fw-semibold">Incidents in Selected Time Window</div>
+        <span class="badge bg-light text-secondary border">{{ incidents|length }} entries</span>
+    </div>
+    {% if incidents %}
+    <div class="table-responsive">
+        <table class="table table-custom align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Target</th>
+                    <th>Failure Diagnostic</th>
+                    <th>Started (UTC)</th>
+                    <th>Resolved (UTC)</th>
+                    <th>Duration</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inc in incidents %}
+                <tr>
+                    <td>
+                        {% if inc.is_resolved %}
+                            <span class="badge-status badge-status-up">Resolved</span>
+                        {% else %}
+                            <span class="badge-status badge-status-down">Active Outage</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="fw-semibold">{{ inc.website.name if inc.website else 'Unknown' }}</div>
+                        <div class="font-mono text-muted small text-truncate" style="max-width: 250px;">{{ inc.website.url if inc.website else '' }}</div>
+                    </td>
+                    <td>
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 font-mono">{{ inc.error_type }}</span>
+                        <div class="small text-muted text-truncate mt-1" style="max-width: 300px;">{{ inc.cause }}</div>
+                    </td>
+                    <td class="small text-muted">{{ inc.started_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td class="small text-muted">
+                        {{ inc.resolved_at.strftime('%Y-%m-%d %H:%M:%S') if inc.resolved_at else '--' }}
+                    </td>
+                    <td class="font-mono small">
+                        {% if inc.duration_seconds is not none %}{{ inc.duration_seconds }}s{% else %}Ongoing{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="p-4 text-center text-muted small">
+        <i data-lucide="check-circle" class="text-success mb-2" style="width: 24px; height: 24px;"></i>
+        <div>No incidents recorded within this date range and filter criteria.</div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

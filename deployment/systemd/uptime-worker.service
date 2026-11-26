@@ -1,0 +1,19 @@
+[Unit]
+Description=Linux Automated Website Uptime Monitor - Background Worker Engine
+After=network.target
+
+[Service]
+Type=simple
+User=uptimemon
+Group=uptimemon
+WorkingDirectory=/opt/linux-uptime-monitor
+EnvironmentFile=/opt/linux-uptime-monitor/.env
+ExecStart=/opt/linux-uptime-monitor/venv/bin/python monitoring/worker.py
+StandardOutput=append:/var/log/uptime-monitor/worker.log
+StandardError=append:/var/log/uptime-monitor/worker-error.log
+Restart=always
+RestartSec=5
+TimeoutStopSec=15
+
+[Install]
+WantedBy=multi-user.target

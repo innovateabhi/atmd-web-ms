@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}404 - Page Not Found{% endblock %}
+
+{% block content %}
+<div class="empty-state py-5">
+    <div class="d-inline-flex p-3 bg-light text-secondary rounded-4 mb-3">
+        <i data-lucide="help-circle" style="width: 48px; height: 48px;"></i>
+    </div>
+    <h3 class="fw-bold mb-2">404 - Resource Not Found</h3>
+    <p class="text-muted small mb-4">The requested page or monitor endpoint could not be located on the server.</p>
+    <a href="{{ url_for('dashboard.index') }}" class="btn btn-sm btn-primary">Return to Overview</a>
+</div>
+{% endblock %}

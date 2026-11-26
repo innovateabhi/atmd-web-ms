@@ -1,0 +1,359 @@
+{% extends "base.html" %}
+
+{% block title %}Infrastructure Overview{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Infrastructure Overview</h4>
+        <div class="text-muted small d-flex align-items-center gap-2">
+            <span>Last global check: <strong id="lastCheckTime">{{ last_check_timestamp }}</strong></span>
+            <span>&bull;</span>
+            <span class="badge bg-light text-secondary border d-inline-flex align-items-center gap-1">
+                <span class="status-dot up" id="liveRefreshDot"></span>
+                <span id="refreshLabel">Auto-refresh active (30s)</span>
+            </span>
+        </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <button id="manualRefreshBtn" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
+            <i data-lucide="refresh-cw" style="width: 15px; height: 15px;"></i>
+            <span>Refresh Now</span>
+        </button>
+        <a href="{{ url_for('websites.add') }}" class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1">
+            <i data-lucide="plus" style="width: 15px; height: 15px;"></i>
+            <span>Add Monitor</span>
+        </a>
+    </div>
+</div>
+
+<!-- 6 Metric Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card-metric">
+            <div class="metric-title">Monitors</div>
+            <div class="metric-value text-slate-900" id="totalSitesVal">{{ total_sites }}</div>
+            <div class="metric-subtitle">Total registered</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card-metric">
+            <div class="metric-title text-success">Operational</div>
+            <div class="metric-value text-success" id="operationalSitesVal">{{ operational_sites }}</div>
+            <div class="metric-subtitle">Passing checks</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card-metric">
+            <div class="metric-title text-danger">Unavailable</div>
+            <div class="metric-value text-danger" id="unavailableSitesVal">{{ unavailable_sites }}</div>
+            <div class="metric-subtitle">Current outages</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card-metric">
+            <div class="metric-title text-secondary">Paused</div>
+            <div class="metric-value text-secondary" id="pausedSitesVal">{{ paused_sites }}</div>
+            <div class="metric-subtitle">Disabled checks</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card-metric">
+            <div class="metric-title text-primary">Avg Response</div>
+            <div class="metric-value text-primary" id="avgRtVal">{{ avg_response_time }}<span class="fs-6 fw-normal ms-1">ms</span></div>
+            <div class="metric-subtitle">Last 24h checks</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="card-metric">
+            <div class="metric-title text-info">Uptime (24h)</div>
+            <div class="metric-value text-slate-900" id="uptimePctVal">{{ overall_uptime_pct }}<span class="fs-6 fw-normal ms-1">%</span></div>
+            <div class="metric-subtitle">Check-based</div>
+        </div>
+    </div>
+</div>
+
+<!-- Response Time & Availability Trends -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-8">
+        <div class="card border border-slate-200 shadow-sm rounded-3 p-3 bg-white h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="fw-semibold small text-uppercase text-muted">24-Hour Average Latency Trend</div>
+                <span class="badge bg-light text-primary border">Hourly Sampled</span>
+            </div>
+            <div style="height: 260px; position: relative;">
+                <canvas id="responseTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border border-slate-200 shadow-sm rounded-3 p-3 bg-white h-100">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="fw-semibold small text-uppercase text-muted">Monitoring Engine Health</div>
+                <span class="badge bg-light text-success border">SQLite WAL</span>
+            </div>
+            <div class="p-3 bg-light rounded-3 mb-3">
+                <div class="d-flex justify-content-between small text-muted mb-1">
+                    <span>24h Completed Checks</span>
+                    <strong class="text-dark">{{ total_checks_24h }}</strong>
+                </div>
+                <div class="d-flex justify-content-between small text-muted mb-1">
+                    <span>Check-Based Reliability</span>
+                    <strong class="text-dark">{{ overall_uptime_pct }}%</strong>
+                </div>
+                <div class="progress progress-metric mt-2">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ overall_uptime_pct }}%;"></div>
+                </div>
+            </div>
+            <div class="small text-muted mb-3">
+                Background monitoring executes via dedicated APScheduler daemon independent of Gunicorn worker threads to eliminate job concurrency drift.
+            </div>
+            <div class="d-grid mt-auto">
+                <a href="{{ url_for('system.index') }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center gap-1">
+                    <i data-lucide="cpu" style="width: 14px; height: 14px;"></i>
+                    <span>View Linux Host Resources</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Websites Overview Table -->
+<div class="card border border-slate-200 shadow-sm rounded-3 bg-white mb-4">
+    <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
+        <div class="fw-semibold">Monitored Websites</div>
+        <a href="{{ url_for('websites.index') }}" class="text-decoration-none small fw-semibold text-primary">View All Monitors &rarr;</a>
+    </div>
+    {% if websites %}
+    <div class="table-responsive">
+        <table class="table table-custom align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Monitor Name</th>
+                    <th>Target URL</th>
+                    <th>Latency</th>
+                    <th>HTTP Code</th>
+                    <th>Last Checked</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="monitorsTableBody">
+                {% for site in websites %}
+                <tr>
+                    <td>
+                        {% if not site.is_active %}
+                            <span class="badge-status badge-status-paused"><span class="status-dot paused"></span>Paused</span>
+                        {% elif site.current_status == 'operational' %}
+                            <span class="badge-status badge-status-up"><span class="status-dot up"></span>Operational</span>
+                        {% elif site.current_status == 'unavailable' %}
+                            <span class="badge-status badge-status-down"><span class="status-dot down"></span>Down</span>
+                        {% else %}
+                            <span class="badge-status badge-status-warn"><span class="status-dot paused"></span>Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('websites.detail', website_id=site.id) }}" class="fw-semibold text-decoration-none text-dark">
+                            {{ site.name }}
+                        </a>
+                    </td>
+                    <td class="font-mono text-muted small text-truncate" style="max-width: 250px;">
+                        {{ site.url }}
+                    </td>
+                    <td>
+                        {% if site.last_response_time_ms is not None %}
+                            <span class="fw-semibold">{{ site.last_response_time_ms }} ms</span>
+                        {% else %}
+                            <span class="text-muted small">--</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if site.last_status_code %}
+                            <span class="badge bg-light text-dark border font-mono">{{ site.last_status_code }}</span>
+                        {% else %}
+                            <span class="text-muted small">--</span>
+                        {% endif %}
+                    </td>
+                    <td class="small text-muted">
+                        {{ site.last_checked_at.strftime('%H:%M:%S UTC') if site.last_checked_at else 'Pending' }}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-inline-flex gap-1">
+                            <form method="POST" action="{{ url_for('websites.manual_check', website_id=site.id) }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary btn-icon" title="Trigger Instant Health Check">
+                                    <i data-lucide="play" style="width: 14px; height: 14px;"></i>
+                                </button>
+                            </form>
+                            <a href="{{ url_for('websites.detail', website_id=site.id) }}" class="btn btn-sm btn-outline-primary btn-icon" title="View Analytics">
+                                <i data-lucide="bar-chart" style="width: 14px; height: 14px;"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i data-lucide="globe-2"></i>
+        <h6 class="fw-bold mb-1">No websites registered yet</h6>
+        <p class="text-muted small mb-3">Add your first HTTP/HTTPS target to start automated uptime tracking.</p>
+        <a href="{{ url_for('websites.add') }}" class="btn btn-sm btn-primary">Add Your First Monitor</a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Recent Incidents Section -->
+<div class="card border border-slate-200 shadow-sm rounded-3 bg-white">
+    <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
+        <div class="fw-semibold">Recent Incidents</div>
+        <a href="{{ url_for('incidents.index') }}" class="text-decoration-none small fw-semibold text-primary">All Incidents &rarr;</a>
+    </div>
+    {% if recent_incidents %}
+    <div class="table-responsive">
+        <table class="table table-custom align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Website</th>
+                    <th>Failure Reason</th>
+                    <th>Downtime Started</th>
+                    <th>Resolved At</th>
+                    <th>Duration</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inc in recent_incidents %}
+                <tr>
+                    <td>
+                        {% if inc.is_resolved %}
+                            <span class="badge-status badge-status-up">Resolved</span>
+                        {% else %}
+                            <span class="badge-status badge-status-down">Active Outage</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('websites.detail', website_id=inc.website_id) }}" class="fw-semibold text-decoration-none text-dark">
+                            {{ inc.website.name if inc.website else 'Unknown Website' }}
+                        </a>
+                    </td>
+                    <td class="small text-danger text-truncate" style="max-width: 250px;">
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 me-1">{{ inc.error_type }}</span>
+                        {{ inc.cause }}
+                    </td>
+                    <td class="small text-muted">{{ inc.started_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}</td>
+                    <td class="small text-muted">
+                        {{ inc.resolved_at.strftime('%Y-%m-%d %H:%M:%S UTC') if inc.resolved_at else '--' }}
+                    </td>
+                    <td class="small font-mono">
+                        {% if inc.duration_seconds is not none %}{{ inc.duration_seconds }}s{% else %}Ongoing{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="p-4 text-center text-muted small">
+        <i data-lucide="check-circle" class="text-success mb-2" style="width: 28px; height: 28px;"></i>
+        <div>Zero incidents reported. All infrastructure monitors operational.</div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let trendChart = null;
+
+function initChart(labels, rtData) {
+    const ctx = document.getElementById('responseTrendChart').getContext('2d');
+    trendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Avg Latency (ms)',
+                data: rtData,
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                fill: true,
+                tension: 0.3,
+                borderWidth: 2,
+                pointRadius: 2,
+                pointHoverRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Latency: ' + context.parsed.y + ' ms';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#f1f5f9' },
+                    ticks: {
+                        callback: function(val) { return val + ' ms'; }
+                    }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+}
+
+function updateDashboardData() {
+    fetch('/api/dashboard-stats')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('totalSitesVal').innerText = data.total_sites;
+            document.getElementById('operationalSitesVal').innerText = data.operational_sites;
+            document.getElementById('unavailableSitesVal').innerText = data.unavailable_sites;
+            document.getElementById('pausedSitesVal').innerText = data.paused_sites;
+            document.getElementById('avgRtVal').innerHTML = data.avg_response_time + '<span class="fs-6 fw-normal ms-1">ms</span>';
+            document.getElementById('uptimePctVal').innerHTML = data.overall_uptime_pct + '<span class="fs-6 fw-normal ms-1">%</span>';
+            document.getElementById('lastCheckTime').innerText = data.last_check_timestamp;
+
+            if (trendChart && data.chart_labels) {
+                trendChart.data.labels = data.chart_labels;
+                trendChart.data.datasets[0].data = data.chart_rt;
+                trendChart.update();
+            }
+        })
+        .catch(err => console.error("Error updating dashboard data:", err));
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    fetch('/api/dashboard-stats')
+        .then(res => res.json())
+        .then(data => {
+            initChart(data.chart_labels || [], data.chart_rt || []);
+        });
+
+    // Auto-refresh every 30 seconds
+    setInterval(updateDashboardData, 30000);
+
+    const refreshBtn = document.getElementById('manualRefreshBtn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            refreshBtn.classList.add('disabled');
+            updateDashboardData();
+            setTimeout(() => refreshBtn.classList.remove('disabled'), 1000);
+        });
+    }
+});
+</script>
+{% endblock %}

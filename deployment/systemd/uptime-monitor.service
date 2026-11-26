@@ -1,0 +1,26 @@
+[Unit]
+Description=Linux Automated Website Uptime Monitor - Web Application (Gunicorn)
+After=network.target
+
+[Service]
+Type=notify
+User=uptimemon
+Group=uptimemon
+WorkingDirectory=/opt/linux-uptime-monitor
+EnvironmentFile=/opt/linux-uptime-monitor/.env
+ExecStart=/opt/linux-uptime-monitor/venv/bin/gunicorn \
+    --workers 3 \
+    --bind 127.0.0.1:8000 \
+    --access-logfile /var/log/uptime-monitor/gunicorn-access.log \
+    --error-logfile /var/log/uptime-monitor/gunicorn-error.log \
+    --capture-output \
+    wsgi:app
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=15
+PrivateTmp=true
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
